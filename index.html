@@ -1,0 +1,141 @@
+<canvas id="canvas" onmousemove="getMousePos" width="800" height="400"></canvas>
+<script type="text/javascript">
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+
+  var interval;
+
+  var playerScore = 0;
+  var aiScore = 0;
+
+  var playerX = 20;
+  var playerY = canvas.height / 2;
+
+  var paddleHeight = 100;
+  var paddleWidth = 20;
+  var ballSize = 10;
+
+  var vx = Math.random(-8, 8) * 10;
+  var vy = Math.random(-4, 4) * 10;
+  var bx = canvas.width / 2;
+  var by = canvas.height / 2;
+
+  var aiv = 5;
+  var aix = canvas.width - 20;
+  var aiy = canvas.height / 2;
+
+  var renderPaddle = function(x, y) {
+    var height = paddleHeight;
+    var width = paddleWidth;
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(x - width / 2, y - height / 2, 20, 100)
+  }
+
+  var renderBall = function(x, y) {
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(x - ballSize / 2, y - ballSize / 2, ballSize, 0, Math.PI * 2)
+    ctx.fill();
+  }
+
+  var renderScores = function() {
+    ctx.font = "30px arial";
+    ctx.fillStyle = "white";
+    ctx.fillText(playerScore, 40, 40);
+    ctx.fillText(aiScore, canvas.width - 40, 40);
+  }
+
+  function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+      y: evt.clientY - rect.top,
+      x: evt.clientX - rect.left
+    };
+  }
+
+  canvas.addEventListener('mousemove', function(evt) {
+    var mouse = getMousePos(canvas, event)
+    playerY = mouse.y;
+  });
+
+  // canvas.addEventListener('click', function(evt) {
+  //   console.log("click!");
+  //   setup();
+  // });
+
+  var render = function() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    renderScores();
+
+    // update positions
+    // ai
+    aiy < by ? aiy += aiv : aiy -= aiv;
+
+    // ball
+    bx += vx;
+    by += vy;
+
+    // wall collisions
+    if (by >= canvas.height || by <= 0) {
+      vy = -vy;
+    }
+    if (bx > canvas.width) {
+      bx = canvas.width / 2;
+      by = canvas.height / 2;
+      playerScore++;
+    } else if (bx < 0) {
+      bx = canvas.width / 2;
+      by = canvas.height / 2;
+      aiScore++;
+    }
+
+    // paddle collisions
+    // touches the ai paddle
+    if (
+      (bx > aix) &&
+      (by >= (aiy - paddleHeight / 2)) && 
+      by <= (aiy + paddleHeight / 2)
+    ) {
+      vx = -vx;
+      vy = -vy;
+      bx += vx;
+      by += vy;
+    }
+
+    // touches the player paddle
+    if (
+      (bx < playerX + paddleWidth / 2) &&
+      (by >= (playerY - paddleHeight / 2)) && 
+      by <= (playerY + paddleHeight / 2)
+    ) {
+      vx = -vx;
+      vy = -vy;
+      bx += vx;
+      by += vy;
+    }
+    renderBall(bx, by);
+    renderPaddle(aix, aiy);
+    renderPaddle(playerX, playerY);
+  }
+
+  var setup = function() {
+    renderScores();
+    // render player paddle
+    renderPaddle(20, canvas.height / 2)
+    // render ai paddle
+    renderPaddle(canvas.width - 20, canvas.height / 2)
+    // render ball
+    renderBall(canvas.width / 2, canvas.height /2)
+
+    interval = window.setInterval(render, 1000/30);
+  }
+  
+
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  setup();
+   
+</script>
